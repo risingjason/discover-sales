@@ -1,5 +1,6 @@
 import $ from "cheerio";
 import { trimAllText, trimAllPrice } from "../utils/trimAll";
+import { formatPrice } from "../utils/formatPrice";
 
 export const getProductData = html => {
   const productTitleSelector = "#productTitle";
@@ -39,23 +40,6 @@ export const validateProductData = product => {
   return true;
 };
 
-export const formatPriceDecimal = price => {
-  if (!price) return;
-
-  const priceLength = price.length;
-  let formattedPrice = price;
-  if (price.indexOf(".") === -1) {
-    formattedPrice =
-      price.substring(0, priceLength - 2) +
-      "." +
-      price.substring(priceLength - 2);
-  }
-  if (price.indexOf("$") === -1) {
-    formattedPrice = "$" + formattedPrice;
-  }
-  return formattedPrice;
-};
-
 export const formatShipping = shipping => {
   const shippingLower = shipping.toLowerCase();
   console.log(shippingLower);
@@ -71,11 +55,11 @@ export const formatShipping = shipping => {
 export const separateSaleAndOriginal = price => {
   let multiPrice = price.split("Save")[0].split("$");
   if (multiPrice.length === 2) {
-    return [formatPriceDecimal(price), ""];
+    return [formatPrice(price), ""];
   }
 
   const [, sale, original] = multiPrice;
-  return [formatPriceDecimal(sale), formatPriceDecimal(original)];
+  return [formatPrice(sale), formatPrice(original)];
 };
 
 export const cleanAmazonURL = url => {

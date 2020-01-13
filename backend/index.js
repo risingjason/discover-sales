@@ -26,7 +26,7 @@ const start = async () => {
       "https://www.target.com/p/nintendo-switch-with-neon-blue-and-neon-red-joy-con/-/A-77464001"
     );
     // console.log(html);
-    console.log(getTargetProductData(html));
+    console.log(await getTargetProductData(html));
   } catch (err) {
     console.log(err);
   }
