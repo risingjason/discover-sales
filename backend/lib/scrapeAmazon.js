@@ -23,14 +23,13 @@ export const getHTML = async url => {
 export const getProductData = html => {
   const productTitleSelector = "#productTitle";
   const priceSelector = "#priceblock_ourprice";
-  const shippingSelector = "#price-shipping-message";
+  const shippingSelector =
+    "#ourprice_shippingmessage > #price-shipping-message";
 
   const productTitle = trimAllText($(productTitleSelector, html).text());
   const shippingDetail = formatShipping(
     trimAllText($(shippingSelector, html).text())
-  )
-    ? "Free Shipping"
-    : "No Free Shipping";
+  );
   let givenPrice = trimAllPrice($(priceSelector, html).text());
   let [salePrice, originalPrice] = separateSaleAndOriginal(givenPrice);
 
@@ -77,11 +76,17 @@ export const formatPriceDecimal = price => {
 };
 
 export const formatShipping = shipping => {
-  if (shipping.toLowerCase().includes("free")) {
-    return true;
+  const shippingLower = shipping.toLowerCase();
+  console.log(shippingLower);
+  if (shippingLower.includes("fast, free shipping with amazon prime")) {
+    return "Free Shipping with Prime";
+  } else if (shippingLower.includes("free shipping")) {
+    return "Free Shipping";
   }
-  return false;
+
+  return "No Free Shipping";
 };
+
 export const separateSaleAndOriginal = price => {
   let multiPrice = price.split("Save")[0].split("$");
   if (multiPrice.length === 2) {
