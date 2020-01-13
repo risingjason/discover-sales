@@ -1,24 +1,5 @@
-import axios from "axios";
 import $ from "cheerio";
 import { trimAllText, trimAllPrice } from "../utils/trimAll";
-
-export const getHTML = async url => {
-  const clean = cleanURL(url);
-  try {
-    const response = await axios.get(clean, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36"
-      }
-    });
-    if (response.status === 200) {
-      const html = response.data;
-      return html;
-    }
-  } catch (err) {
-    console.log(`An error occurred on URL: ${url}.`);
-  }
-};
 
 export const getProductData = html => {
   const productTitleSelector = "#productTitle";
@@ -97,7 +78,7 @@ export const separateSaleAndOriginal = price => {
   return [formatPriceDecimal(sale), formatPriceDecimal(original)];
 };
 
-export const cleanURL = url => {
+export const cleanAmazonURL = url => {
   const [urlNoQuery] = url.split("?");
   const urlArray = urlNoQuery.split("/");
   const gp = urlArray.indexOf("gp");
