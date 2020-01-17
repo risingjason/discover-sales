@@ -8,6 +8,9 @@ const TARGET_PRODUCT_ENDPOINT =
 const TARGET_STORE_LOCATION_ENDPOINT =
   "https://redsky.target.com/v3/stores/nearby";
 
+const TARGET_PRODUCT_DESCRIPTION_ENDPOINT =
+  "https://redsky.target.com/v3/pdp/tcin";
+
 export const getProductData = async response => {
   const cookie = response.headers["set-cookie"];
   const { path } = response.request;
@@ -27,8 +30,17 @@ export const getProductData = async response => {
   const idIndex = visitorCookie.indexOf("=");
   const visitorId = visitorCookie.substring(idIndex + 1);
 
-  const productData = await getProductPriceFromAPI(visitorId, productId);
+  const productData = await getProductFromAPI(visitorId, productId);
   const productName = getProductName(response.data);
+
+  if (Array.isArray(productData)) {
+    return {
+      visitorId,
+      productId,
+      productName,
+      variations: productData
+    };
+  }
 
   return {
     visitorId,
@@ -44,15 +56,25 @@ export const getProductName = html => {
   return productName;
 };
 
-export const getProductPriceFromAPI = async (
+export const getProductFromAPI = async (
   visitorId,
   productId,
   zipCode = 90031
 ) => {
-  let storeLocationId;
-  let productData;
+  const storeLocationId = await getStoreLocationId(zipCode, visitorId);
+  const productData = await getProductPricing(
+    productId,
+    storeLocationId,
+    visitorId
+  );
 
-  // get store location ID
+  // get product info
+  return productData;
+};
+
+export const getStoreLocationId = async (zipCode, visitorId) => {
+  let storeLocationId;
+
   try {
     const { data } = await axios.get(
       TARGET_STORE_LOCATION_ENDPOINT +
@@ -61,22 +83,113 @@ export const getProductPriceFromAPI = async (
     const closestLocation = data[0].locations[0];
     storeLocationId = closestLocation.location_id;
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 
-  // get product info
+  return storeLocationId;
+};
+
+export const getProductPricing = async (
+  productId,
+  storeLocationId,
+  visitorId
+) => {
+  let productPricing;
+
   try {
     const { data } = await axios.get(
       TARGET_PRODUCT_ENDPOINT +
         `/${productId}?pricing_store_id=${storeLocationId}&key=${visitorId}`
     );
-    productData = {
-      currentPrice: data.price.formatted_current_price,
-      retailPrice: formatPrice(data.price.reg_retail.toString())
-    };
+    if (data.child_items) {
+      const childProductItems = await getProductChildItems(
+        data.child_items,
+        storeLocationId,
+        visitorId
+      );
+      productPricing = childProductItems;
+    } else {
+      productPricing = {
+        originalPrice: formatPrice(data.price.reg_retail),
+        currentPrice: formatPrice(data.price.current_retail)
+      };
+    }
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 
-  return productData;
+  return productPricing;
+};
+
+export const getProductChildItems = async (
+  child_items,
+  storeLocationId,
+  visitorId
+) => {
+  let productChildItems = [];
+
+  for (let i = 0; i < child_items.length; i++) {
+    const childItem = child_items[i];
+    let formattedProductDescription = {};
+
+    const childProductDescription = await getProductDescription(childItem.tcin);
+    formattedProductDescription.variantName =
+      childProductDescription.product_description.title;
+    Object.keys(childProductDescription.variation).forEach(key => {
+      if (key !== "flexible_themes") {
+        formattedProductDescription[key] =
+          childProductDescription.variation[key];
+      }
+    });
+
+    const childProductPrice = await getProductPricing(
+      childItem.tcin,
+      storeLocationId,
+      visitorId
+    );
+    formattedProductDescription = {
+      ...formattedProductDescription,
+      originalPrice: formatPrice(childProductPrice.price.reg_retail),
+      currentPrice: formatPrice(childProductPrice.price.current_retail)
+    };
+
+    productChildItems.push(formattedProductDescription);
+  }
+
+  return productChildItems;
+};
+
+export const getProductDescription = async (
+  productId,
+  storeLocationId,
+  visitorId
+) => {
+  let description;
+  const excludesString =
+    "?excludes=in_store_location," +
+    "bulk_ship," +
+    "question_answer_statistics," +
+    "rating_and_review_reviews," +
+    "available_to_promise_network," +
+    "available_to_promise_store," +
+    "deep_red_labels," +
+    "rating_and_review_statistics";
+  const keyAndStore = `&pricing_store_id=${storeLocationId}&key=${visitorId}`;
+
+  try {
+    const response = await axios.get(
+      TARGET_PRODUCT_DESCRIPTION_ENDPOINT +
+        `/${productId}${excludesString}${keyAndStore}`
+    );
+    const {
+      data: {
+        product: { item }
+      }
+    } = response;
+    description = item;
+  } catch (err) {
+    console.error(err);
+  }
+
+  return description;
 };

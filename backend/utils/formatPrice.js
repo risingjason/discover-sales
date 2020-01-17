@@ -1,16 +1,17 @@
 export const formatPrice = price => {
   if (!price) return;
 
+  const stringPrice = price.toString();
   const priceLength = price.length;
-  let formattedPrice = price;
-  if (price.indexOf(".") === -1) {
+  let formattedPrice;
+  if (stringPrice.indexOf(".") === -1) {
     formattedPrice =
-      price.substring(0, priceLength - 2) +
+      stringPrice.substring(0, priceLength - 2) +
       "." +
-      price.substring(priceLength - 2);
+      stringPrice.substring(priceLength - 2);
   }
-  if (price.indexOf("$") === -1) {
-    formattedPrice = "$" + formattedPrice;
+  if (stringPrice.indexOf("$") === -1) {
+    formattedPrice = "$" + stringPrice;
   }
   return formattedPrice;
 };
