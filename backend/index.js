@@ -23,7 +23,7 @@ import { getHTML } from "./utils/getHTML";
 const start = async () => {
   try {
     const html = await getHTML(
-      "https://www.target.com/p/contigo-16oz-snapseal-byron-vacuum-insulated-stainless-steel-travel-mug-monaco/-/A-53220734"
+      "https://www.target.com/p/standard-queen-plush-pillow-white-room-essentials/-/A-78060632"
     );
     console.log(await getTargetProductData(html));
   } catch (err) {

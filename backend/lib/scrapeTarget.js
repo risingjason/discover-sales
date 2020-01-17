@@ -133,8 +133,11 @@ export const getProductChildItems = async (
     let formattedProductDescription = {};
 
     const childProductDescription = await getProductDescription(childItem.tcin);
-    formattedProductDescription.variantName =
-      childProductDescription.product_description.title;
+    formattedProductDescription = {
+      variantName: childProductDescription.product_description.title,
+      productId: childProductDescription.tcin
+    };
+
     Object.keys(childProductDescription.variation).forEach(key => {
       if (key !== "flexible_themes") {
         formattedProductDescription[key] =
@@ -142,15 +145,10 @@ export const getProductChildItems = async (
       }
     });
 
-    const childProductPrice = await getProductPricing(
-      childItem.tcin,
-      storeLocationId,
-      visitorId
-    );
     formattedProductDescription = {
       ...formattedProductDescription,
-      originalPrice: formatPrice(childProductPrice.price.reg_retail),
-      currentPrice: formatPrice(childProductPrice.price.current_retail)
+      originalPrice: formatPrice(childItem.price.reg_retail, false),
+      currentPrice: formatPrice(childItem.price.current_retail, false)
     };
 
     productChildItems.push(formattedProductDescription);
