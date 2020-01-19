@@ -50,6 +50,14 @@ export const getProductData = async response => {
   };
 };
 
+export const cleanTargetURL = url => {
+  let cleanURL;
+  const queryIndex = url.indexOf("?");
+  cleanURL = url.substring(0, queryIndex);
+
+  return cleanURL;
+};
+
 export const getProductName = html => {
   const productNameSelector = `[data-test="product-title"]`;
   const productName = $(productNameSelector, html).text();

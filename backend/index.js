@@ -4,7 +4,10 @@ import {
   cleanAmazonURL,
   getProductData as getAmazonProductData
 } from "./lib/scrapeAmazon";
-import { getProductData as getTargetProductData } from "./lib/scrapeTarget";
+import {
+  cleanTargetURL,
+  getProductData as getTargetProductData
+} from "./lib/scrapeTarget";
 import { getHTML } from "./utils/getHTML";
 
 // const start = async () => {
