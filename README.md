@@ -1,3 +1,3 @@
-##Discover Sales Project
+# Discover Sales Project
 
-* NOTE * This project is for personal and learning purposes only!
+- NOTE \* This project is for personal and learning purposes only!
